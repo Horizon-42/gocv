@@ -1,10 +1,10 @@
 #include "camera_calibrate.h"
 
-bool GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
+double GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
 {
     if (pics.length < 13)
     {
-        return false;
+        return -1;
     }
 
     // 初始化棋盘格角点的世界坐标
@@ -37,7 +37,7 @@ bool GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
         }
 
         std::vector<cv::Point2f> imageCorners;
-        bool found = cv::findChessboardCorners(cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners, cv::CALIB_CB_EXHAUSTIVE | cv::CALIB_CB_ACCURACY);
+        bool found = cv::findChessboardCornersSB(cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners, cv::CALIB_CB_EXHAUSTIVE | cv::CALIB_CB_ACCURACY);
         if (!found)
         {
             continue;
@@ -47,11 +47,58 @@ bool GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
     }
     if (objectPoints.empty())
     {
-        return false;
+        return -1;
     }
     std::vector<cv::Mat> rvecs, tvecs; //无用
-    cv::calibrateCamera(objectPoints, imagePoints, imageSize, *internal, *distCoffs, rvecs, tvecs);
+    double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize, *internal, *distCoffs, rvecs, tvecs);
     // 释放内存
     std::vector<cv::Mat>().swap(rvecs);
     std::vector<cv::Mat>().swap(tvecs);
+    return res;
+}
+
+bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs, cv::Size patternSize, cv::Mat &external)
+{
+    if (pic.empty() || cameraMatrix.empty() || distCoffs.empty())
+    {
+        return false;
+    }
+
+    // 初始化棋盘格角点的世界坐标
+    std::vector<cv::Point3f> objectCorners;
+    int h = patternSize.height, w = patternSize.width;
+    for (int i = 0; i < h; i++)
+    {
+        for (int j = 0; j < w; j++)
+        {
+            objectCorners.emplace_back(cv::Point3f(i, j, 0));
+        }
+    }
+
+    std::vector<cv::Point2f> imageCorners;
+    bool found = cv::findChessboardCornersSB(pic, cv::Size(patternSize.width, patternSize.height), imageCorners, cv::CALIB_CB_EXHAUSTIVE | cv::CALIB_CB_ACCURACY);
+
+    cv::Mat rvec, tvec; //无用 世界坐标系到相机坐标系到旋转、平移矩阵
+    cv::solvePnP(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec, tvec);
+    // 根据旋转、平移矩阵构造外参矩阵
+    external = cv::Mat::zeros(cv::Size(4, 4), CV_32FC1);
+    for (int i = 0; i < 3; i++)
+    {
+        auto rvecRow = rvec.ptr<float>(i);
+        auto tvecRow = tvec.ptr<float>(i);
+        auto exRow = external.ptr<float>(i);
+        for (int j = 0; j < 3; j++)
+        {
+            exRow[j] = rvecRow[j];
+        }
+        exRow[3] = tvecRow[0];
+    }
+    external.at<float>(3, 3) = 1;
+
+    // 释放内存
+    rvec.release();
+    tvec.release();
+    std::vector<cv::Point3f>().swap(objectCorners);
+    std::vector<cv::Point2f>().swap(imageCorners);
+    return true;
 }
