@@ -44,6 +44,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
         }
         objectPoints.emplace_back(objectCorners);
         objectPoints.emplace_back(imageCorners);
+        cbPic.release();
     }
     if (objectPoints.empty())
     {
@@ -100,5 +101,53 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs, cv::Si
     tvec.release();
     std::vector<cv::Point3f>().swap(objectCorners);
     std::vector<cv::Point2f>().swap(imageCorners);
+    return true;
+}
+
+bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize, Mat B)
+{
+    if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2)
+    {
+        return false;
+    }
+    cv::Mat picI = *(pics.mats[0]);
+    cv::Mat picJ = *(pics.mats[1]);
+    if (picI.empty() || picJ.empty())
+    {
+        return false;
+    }
+    cv::Mat cmI = *(cameraMatrixs.mats[0]);
+    cv::Mat cmJ = *(cameraMatrixs.mats[1]);
+    if (cmI.empty() || cmJ.empty())
+    {
+        return false;
+    }
+
+    cv::Mat disI = *(distCoffs.mats[0]);
+    cv::Mat disJ = *(distCoffs.mats[1]);
+    if (disI.empty() || disJ.empty())
+    {
+        return false;
+    }
+
+    cv::Size psz(patternSize.width, patternSize.height);
+    cv::Mat eI, eJ;
+    if (!(GetExternalMat(picI, cmI, disI, psz, eI) || GetExternalMat(picJ, cmJ, disJ, psz, eJ)))
+    {
+        return false;
+    }
+    cv::Mat invEI;
+    cv::invert(eI, invEI);
+    *B = eJ * invEI;
+
+    // 释放内存
+    picI.release();
+    picJ.release();
+    cmI.release();
+    cmJ.release();
+    eI.release();
+    invEI.release();
+    eJ.release();
+
     return true;
 }

@@ -14,7 +14,7 @@ extern "C"
 #include "core.h"
 
     double GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs);
-    bool CalculateBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize, Mat B);
+    bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize, Mat B);
 
 #ifdef __cplusplus
 }
