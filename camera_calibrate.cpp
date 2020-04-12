@@ -8,7 +8,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix, Mat distCof
     }
 
     // 初始化棋盘格角点的世界坐标
-    std::vector<std::vector<cv::Vec3f>> objectCorners;
+    std::vector<cv::Point3f> objectCorners;
     int h = patternSize.height, w = patternSize.width;
     for (int i = 0; i < h; i++)
     {
@@ -43,7 +43,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix, Mat distCof
             continue;
         }
         objectPoints.emplace_back(objectCorners);
-        objectPoints.emplace_back(imageCorners);
+        imagePoints.emplace_back(imageCorners);
         cbPic.release();
     }
     if (objectPoints.empty())
