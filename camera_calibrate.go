@@ -53,7 +53,7 @@ func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Ma
 	}
 	cDistCoffs := C.struct_Mats{
 		mats:   (*C.Mat)(&cDistCoffsArray[0]),
-		length: C.int(2)),
+		length: C.int(2),
 	}
 	sz := C.struct_Size{
 		width:  C.int(patternSize.X),
