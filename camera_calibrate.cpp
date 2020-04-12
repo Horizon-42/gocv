@@ -1,6 +1,6 @@
 #include "camera_calibrate.h"
 
-double GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
+double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix, Mat distCoffs)
 {
     if (pics.length < 13)
     {
@@ -51,7 +51,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat internal, Mat distCoffs)
         return -1;
     }
     std::vector<cv::Mat> rvecs, tvecs; //无用
-    double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize, *internal, *distCoffs, rvecs, tvecs);
+    double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize, *cameraMatrix, *distCoffs, rvecs, tvecs);
     // 释放内存
     std::vector<cv::Mat>().swap(rvecs);
     std::vector<cv::Mat>().swap(tvecs);
