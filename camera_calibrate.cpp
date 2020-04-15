@@ -36,15 +36,15 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
     if (accurcy) {
       bool found = cv::findChessboardCornersSB(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
-          cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
-              cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
+          cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_ACCURACY);
       if (!found) {
         continue;
       }
     } else {
       bool found = cv::findChessboardCorners(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
-          cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_ACCURACY);
+          cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
+              cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
       if (!found) {
         continue;
       }
