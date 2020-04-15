@@ -25,7 +25,7 @@ func GetInternalMat(pics []Mat, patternSize image.Point, cameraMatrix, distCoffs
 		width:  C.int(patternSize.X),
 		height: C.int(patternSize.Y),
 	}
-	return float64(C.GetInternalMat(cMats, sz, cameraMatrix.Ptr(), distCoffs.Ptr(), accuracy))
+	return float64(C.GetInternalMat(cMats, sz, cameraMatrix.Ptr(), distCoffs.Ptr(), C.bool(accuracy)))
 }
 
 func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Mat) bool {
