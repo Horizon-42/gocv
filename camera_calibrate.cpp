@@ -65,10 +65,10 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
                                    *cameraMatrix, *distCoffs, rvecs, tvecs);
-  std::cout << "cm" << std::endl;
-  std::cout << *cameraMatrix << std::endl;
-  std::cout << "dist:" << std::endl;
-  std::cout << *distCoffs << std::endl;
+//  std::cout << "cm" << std::endl;
+//  std::cout << *cameraMatrix << std::endl;
+//  std::cout << "dist:" << std::endl;
+//  std::cout << *distCoffs << std::endl;
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
   std::vector<cv::Mat>().swap(tvecs);
