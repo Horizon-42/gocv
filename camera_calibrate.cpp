@@ -65,10 +65,10 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
                                    *cameraMatrix, *distCoffs, rvecs, tvecs);
-//  std::cout << "cm" << std::endl;
-//  std::cout << *cameraMatrix << std::endl;
-//  std::cout << "dist:" << std::endl;
-//  std::cout << *distCoffs << std::endl;
+  //  std::cout << "cm" << std::endl;
+  //  std::cout << *cameraMatrix << std::endl;
+  //  std::cout << "dist:" << std::endl;
+  //  std::cout << *distCoffs << std::endl;
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
   std::vector<cv::Mat>().swap(tvecs);
@@ -93,23 +93,24 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   std::vector<cv::Point2f> imageCorners;
   bool found = cv::findChessboardCornersSB(
       pic, cv::Size(patternSize.width, patternSize.height), imageCorners,
-      cv::CALIB_CB_EXHAUSTIVE | cv::CALIB_CB_ACCURACY);
+      cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ACCURACY |
+          cv::CALIB_CB_EXHAUSTIVE);
 
-  cv::Mat rvec, tvec; //无用 世界坐标系到相机坐标系到旋转、平移矩阵
+  cv::Mat rvec, tvec;
   cv::solvePnP(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
                tvec);
   // 根据旋转、平移矩阵构造外参矩阵
-  external = cv::Mat::zeros(cv::Size(4, 4), CV_32FC1);
+  external = cv::Mat::zeros(cv::Size(4, 4), CV_64FC1);
   for (int i = 0; i < 3; i++) {
-    auto rvecRow = rvec.ptr<float>(i);
-    auto tvecRow = tvec.ptr<float>(i);
-    auto exRow = external.ptr<float>(i);
+    auto rvecRow = rvec.ptr<double>(i);
+    auto tvecRow = tvec.ptr<double>(i);
+    auto exRow = external.ptr<double>(i);
     for (int j = 0; j < 3; j++) {
       exRow[j] = rvecRow[j];
     }
     exRow[3] = tvecRow[0];
   }
-  external.at<float>(3, 3) = 1;
+  external.at<double>(3, 3) = 1;
 
   // 释放内存
   rvec.release();

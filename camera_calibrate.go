@@ -28,6 +28,7 @@ func GetInternalMat(pics []Mat, patternSize image.Point, cameraMatrix, distCoffs
 	return float64(C.GetInternalMat(cMats, sz, cameraMatrix.Ptr(), distCoffs.Ptr(), C.bool(accuracy)))
 }
 
+// 相邻相机外参关系矩阵求取
 func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Mat) bool {
 	if len(pics) != 2 || len(cameraMatrix) != 2 || len(distCoffs) != 2 {
 		panic("input error")
