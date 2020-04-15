@@ -65,10 +65,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
                                    *cameraMatrix, *distCoffs, rvecs, tvecs);
-  //  std::cout << "cm" << std::endl;
-  //  std::cout << *cameraMatrix << std::endl;
-  //  std::cout << "dist:" << std::endl;
-  //  std::cout << *distCoffs << std::endl;
+
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
   std::vector<cv::Mat>().swap(tvecs);
@@ -95,10 +92,14 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
       pic, cv::Size(patternSize.width, patternSize.height), imageCorners,
       cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ACCURACY |
           cv::CALIB_CB_EXHAUSTIVE);
+  if (!found) {
+    return false;
+  }
 
   cv::Mat rvec, tvec;
   cv::solvePnP(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
                tvec);
+
   // 根据旋转、平移矩阵构造外参矩阵
   external = cv::Mat::zeros(cv::Size(4, 4), CV_64FC1);
   for (int i = 0; i < 3; i++) {
@@ -144,10 +145,12 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
 
   cv::Size psz(patternSize.width, patternSize.height);
   cv::Mat eI, eJ;
-  if (!(GetExternalMat(picI, cmI, disI, psz, eI) ||
-        GetExternalMat(picJ, cmJ, disJ, psz, eJ))) {
+
+  if (!GetExternalMat(picI, cmI, disI, psz, eI) ||
+      !GetExternalMat(picJ, cmJ, disJ, psz, eJ)) {
     return false;
   }
+
   cv::Mat invEI;
   cv::invert(eI, invEI);
   *B = eJ * invEI;
