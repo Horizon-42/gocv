@@ -6,15 +6,17 @@
 #include <opencv4/opencv2/calib3d.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 
-bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs, cv::Size patternSize, cv::Mat &external);
+bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
+                    cv::Size patternSize, cv::Mat &external);
 
-extern "C"
-{
+extern "C" {
 #endif
 #include "core.h"
 
-    double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix, Mat distCoffs);
-    bool GetBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize, Mat B);
+double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
+                      Mat distCoffs, bool accuracy);
+bool GetBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
+             Mat B);
 
 #ifdef __cplusplus
 }

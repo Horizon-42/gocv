@@ -1,7 +1,7 @@
 #include "camera_calibrate.h"
 
 double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
-                      Mat distCoffs) {
+                      Mat distCoffs, bool accurcy) {
   if (pics.length < 13) {
     return -1;
   }
@@ -31,22 +31,30 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
       imageSize.height = cbPic.size[0];
       imageSize.width = cbPic.size[1];
     }
-
     std::vector<cv::Point2f> imageCorners;
-    //        bool found = cv::findChessboardCornersSB(cbPic,
-    //        cv::Size(patternSize.width, patternSize.height), imageCorners,
-    //        cv::CALIB_CB_ACCURACY);
-    bool found = cv::findChessboardCorners(
-        cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
-        cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
-            cv::CALIB_CB_FAST_CHECK);
-    if (!found) {
-      continue;
+
+    if (accurcy) {
+      bool found = cv::findChessboardCornersSB(
+          cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
+          cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
+              cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
+      if (!found) {
+        continue;
+      }
+    } else {
+      bool found = cv::findChessboardCorners(
+          cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
+          cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
+              cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
+      if (!found) {
+        continue;
+      }
+      cv::cornerSubPix(
+          cbPic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
+          cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER,
+                           40, 0.001));
     }
-    cv::cornerSubPix(
-        cbPic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
-        cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30,
-                         0.01));
+
     objectPoints.emplace_back(objectCorners);
     imagePoints.emplace_back(imageCorners);
     cbPic.release();
@@ -58,6 +66,10 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
                                    *cameraMatrix, *distCoffs, rvecs, tvecs);
+  std::cout << "cm" << std::endl;
+  std::cout << *cameraMatrix << std::endl;
+  std::cout << "dist:" << std::endl;
+  std::cout << *distCoffs << std::endl;
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
   std::vector<cv::Mat>().swap(tvecs);

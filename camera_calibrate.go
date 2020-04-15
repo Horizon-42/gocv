@@ -9,8 +9,8 @@ import "image"
 
 // 内参外参数标定相关函数
 
-func GetInternalMat(pics []Mat, patternSize image.Point, cameraMatrix, distCoffs *Mat) float64 {
-	cMatArray:=make([]C.Mat, len(pics))
+func GetInternalMat(pics []Mat, patternSize image.Point, cameraMatrix, distCoffs *Mat, accuracy bool) float64 {
+	cMatArray := make([]C.Mat, len(pics))
 
 	for i, r := range pics {
 		cMatArray[i] = r.p
@@ -25,7 +25,7 @@ func GetInternalMat(pics []Mat, patternSize image.Point, cameraMatrix, distCoffs
 		width:  C.int(patternSize.X),
 		height: C.int(patternSize.Y),
 	}
-	return float64(C.GetInternalMat(cMats, sz, cameraMatrix.Ptr(), distCoffs.Ptr()))
+	return float64(C.GetInternalMat(cMats, sz, cameraMatrix.Ptr(), distCoffs.Ptr(), accuracy))
 }
 
 func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Mat) bool {
