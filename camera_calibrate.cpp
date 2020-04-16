@@ -225,5 +225,5 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat dist
   rvec.release();
   tvec.release();
   rotateMat.release();
-  return true
+  return true;
 }
