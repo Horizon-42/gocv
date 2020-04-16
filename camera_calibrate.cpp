@@ -206,20 +206,33 @@ bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize, Mat ext
 
 bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat distCoeffs, Mat imagePoints)
 {
-  if (!(*objectPoints).empty() && !(*externalMat).empty() && !(*cameraMatrix).empty() && !(*distCoeffs).empty())
+  if (objectPoints->empty() || externalMat->empty() || cameraMatrix->empty() || distCoeffs->empty())
+  {
     return false;
-  if ((*externalMat).size[0] == 4 && (*externalMat).size[1] == 4)
+  }
+  if (externalMat->size[0] != 4 || externalMat->size[1] != 4)
+  {
     return false;
+  }
+
+  std::cout << "project ... " << std::endl;
 
   cv::Mat rvec, tvec;
-  tvec = (*externalMat).colRange(3, 4);
-  cv::Mat rotateMat = (*externalMat).colRange(0, 3);
+  tvec = (*externalMat)(cv::Rect(3, 0, 1, 3));
+  cv::Mat rotateMat = (*externalMat)(cv::Rect(0, 0, 3, 3));
   // 旋转矩阵求rvec
   cv::Rodrigues(rotateMat, rvec);
+
+  std::cout << (*objectPoints).size << std::endl;
+  std::cout << tvec.size << std::endl;
 
   // 映射坐标
   cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs, *imagePoints);
   *imagePoints = (*imagePoints).reshape(2, (*objectPoints).size[0]);
+
+  std::cout << "object and images:" << std::endl;
+  std::cout << *objectPoints << std::endl;
+  std::cout << *imagePoints << std::endl;
 
   // 释放内存
   rvec.release();
