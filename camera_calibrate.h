@@ -21,6 +21,8 @@ extern "C"
 
     bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize, Mat externalMat);
 
+    bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat distCoeffs, Mat imagePoints);
+
 #ifdef __cplusplus
 }
 #endif

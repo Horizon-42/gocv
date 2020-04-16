@@ -70,3 +70,7 @@ func GetExternalMat(pic, cameraMatrix, distCoffs Mat, patternSize image.Point, e
 	}
 	return bool(C.GetEMat(pic.Ptr(), cameraMatrix.Ptr(), distCoffs.Ptr(), sz, externalMat.Ptr()))
 }
+
+func ProjectPoints(objectPoints, externalMat, cameraMatrix, distCoeffs Mat, imagePoints *Mat) bool {
+	return bool(C.ProjectPoints(objectPoints.Ptr(), externalMat.Ptr(), cameraMatrix.Ptr(), distCoeffs.Ptr(), imagePoints.Ptr()))
+}

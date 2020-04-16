@@ -115,13 +115,15 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   }
 
   cv::Mat rvec, tvec;
-  cv::solvePnP(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
-               tvec);
-
+  cv::solvePnPRansac(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
+                     tvec);
   // 根据旋转、平移矩阵构造外参矩阵
   external = cv::Mat::zeros(cv::Size(4, 4), CV_64FC1);
+  std::cout << "rvec" << std::endl;
+  std::cout << rvec << std::endl;
   cv::Mat rotateMat;
   cv::Rodrigues(rvec, rotateMat);
+  std::cout << rotateMat << std::endl;
   for (int i = 0; i < 3; i++)
   {
     auto rvecRow = rotateMat.ptr<double>(i);
@@ -200,4 +202,25 @@ bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize, Mat ext
 {
   cv::Size psz(patternSize.width, patternSize.height);
   return GetExternalMat(*pic, *cameraMatrix, *distCoffs, psz, *externalMat);
+}
+
+bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat distCoeffs, Mat imagePoints)
+{
+  if (!(*objectPoints).empty() && !(*externalMat).empty() && !(*cameraMatrix).empty() && !(*distCoeffs).empty())
+    return false;
+  if ((*externalMat).size[0] == 4 && (*externalMat).size[1] == 4)
+    return false;
+
+  cv::Mat rvec, tvec;
+  tvec = (*externalMat).colRange(3, 4);
+  cv::Mat rotateMat = (*externalMat).colRange(0, 3);
+  // 旋转矩阵求rvec
+  cv::Rodrigues(rotateMat, rvec);
+
+  // 映射坐标
+  cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs, *imagePoints);
+
+  rvec.release();
+  tvec.release();
+  rotateMat.release();
 }
