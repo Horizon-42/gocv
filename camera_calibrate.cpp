@@ -119,11 +119,9 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
                      tvec);
   // 根据旋转、平移矩阵构造外参矩阵
   external = cv::Mat::zeros(cv::Size(4, 4), CV_64FC1);
-  std::cout << "rvec" << std::endl;
-  std::cout << rvec << std::endl;
   cv::Mat rotateMat;
   cv::Rodrigues(rvec, rotateMat);
-  std::cout << rotateMat << std::endl;
+
   for (int i = 0; i < 3; i++)
   {
     auto rvecRow = rotateMat.ptr<double>(i);
@@ -215,24 +213,15 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat dist
     return false;
   }
 
-  std::cout << "project ... " << std::endl;
-
   cv::Mat rvec, tvec;
   tvec = (*externalMat)(cv::Rect(3, 0, 1, 3));
   cv::Mat rotateMat = (*externalMat)(cv::Rect(0, 0, 3, 3));
   // 旋转矩阵求rvec
   cv::Rodrigues(rotateMat, rvec);
 
-  std::cout << (*objectPoints).size << std::endl;
-  std::cout << tvec.size << std::endl;
-
   // 映射坐标
   cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs, *imagePoints);
   *imagePoints = (*imagePoints).reshape(2, (*objectPoints).size[0]);
-
-  std::cout << "object and images:" << std::endl;
-  std::cout << *objectPoints << std::endl;
-  std::cout << *imagePoints << std::endl;
 
   // 释放内存
   rvec.release();
