@@ -63,10 +63,10 @@ func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Ma
 	return bool(C.GetBMat(cPics, cCameraMats, cDistCoffs, sz, B.Ptr()))
 }
 
-func GetExternalMat(pic, cameraMatrix, distCoffs Mat, patternSize image.Point, externalMat *Mat) {
+func GetExternalMat(pic, cameraMatrix, distCoffs Mat, patternSize image.Point, externalMat *Mat) bool {
 	sz := C.struct_Size{
 		width:  C.int(patternSize.X),
 		height: C.int(patternSize.Y),
 	}
-	return bool(C.GetEMat(pic.Ptr(), distCoffs.Ptr(), sz, externalMat.Ptr()))
+	return bool(C.GetEMat(pic.Ptr(), cameraMatrix.Ptr(), distCoffs.Ptr(), sz, externalMat.Ptr()))
 }
