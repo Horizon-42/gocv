@@ -219,8 +219,11 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat dist
 
   // 映射坐标
   cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs, *imagePoints);
+  *imagePoints = (*imagePoints).reshape(1, (*objectPoints).size[0]);
 
+  // 释放内存
   rvec.release();
   tvec.release();
   rotateMat.release();
+  return true
 }
