@@ -120,9 +120,11 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
 
   // 根据旋转、平移矩阵构造外参矩阵
   external = cv::Mat::zeros(cv::Size(4, 4), CV_64FC1);
+  cv::Mat rotateMat;
+  cv::Rodrigues(rvec, rotateMat);
   for (int i = 0; i < 3; i++)
   {
-    auto rvecRow = rvec.ptr<double>(i);
+    auto rvecRow = rotateMat.ptr<double>(i);
     auto tvecRow = tvec.ptr<double>(i);
     auto exRow = external.ptr<double>(i);
     for (int j = 0; j < 3; j++)
@@ -136,6 +138,7 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   // 释放内存
   rvec.release();
   tvec.release();
+  rotateMat.release();
   std::vector<cv::Point3f>().swap(objectCorners);
   std::vector<cv::Point2f>().swap(imageCorners);
   return true;
