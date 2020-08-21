@@ -105,7 +105,7 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   }
 
   std::vector<cv::Point2f> imageCorners;
-  bool found = cv::findChessboardCornersSB(
+  bool found = cv::findChessboardCorners(
       pic, cv::Size(patternSize.width, patternSize.height), imageCorners,
       cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ACCURACY |
           cv::CALIB_CB_EXHAUSTIVE);
@@ -113,6 +113,10 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   {
     return false;
   }
+  cv::cornerSubPix(
+            pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
+            cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER,
+                             40, 0.001));
 
   cv::Mat rvec, tvec;
   cv::solvePnPRansac(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
