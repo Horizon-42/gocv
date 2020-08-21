@@ -6,7 +6,7 @@
 #include <opencv4/opencv2/calib3d.hpp>
 #include <opencv4/opencv2/opencv.hpp>
 
-bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
+bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix, const cv::Mat &distCoffs,
                     cv::Size patternSize, cv::Mat &external);
 
 extern "C"
