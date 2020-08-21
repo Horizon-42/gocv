@@ -85,7 +85,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   return res;
 }
 
-bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
+bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix, const cv::Mat &distCoffs,
                     cv::Size patternSize, cv::Mat &external)
 {
   if (pic.empty() || cameraMatrix.empty() || distCoffs.empty())
@@ -114,9 +114,9 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
     return false;
   }
   cv::cornerSubPix(
-            pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
-            cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER,
-                             40, 0.001));
+      pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
+      cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER,
+                       40, 0.001));
 
   cv::Mat rvec, tvec;
   cv::solvePnPRansac(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
