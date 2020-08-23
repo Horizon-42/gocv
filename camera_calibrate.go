@@ -5,7 +5,9 @@ package gocv
 #include "camera_calibrate.h"
 */
 import "C"
-import "image"
+import (
+	"image"
+)
 
 // 内参外参数标定相关函数
 
