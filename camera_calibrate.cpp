@@ -1,20 +1,23 @@
 #include "camera_calibrate.h"
 
 double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
+<<<<<<< HEAD
                       Mat distCoffs, bool accurcy)
 {
   if (pics.length < 3)
   {
+=======
+                      Mat distCoffs, bool accurcy) {
+  if (pics.length < 13) {
+>>>>>>> d2058faa408f069e20583cdf58c8b6bb62c3348a
     return -1;
   }
 
   // 初始化棋盘格角点的世界坐标
   std::vector<cv::Point3f> objectCorners;
   int h = patternSize.height, w = patternSize.width;
-  for (int i = 0; i < h; i++)
-  {
-    for (int j = 0; j < w; j++)
-    {
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
       objectCorners.emplace_back(cv::Point3f(i, j, 0));
     }
   }
@@ -23,41 +26,33 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<std::vector<cv::Point3f>> objectPoints;
   std::vector<std::vector<cv::Point2f>> imagePoints;
   cv::Size imageSize;
-  for (int i = 0; i < pics.length; i++)
-  {
+  for (int i = 0; i < pics.length; i++) {
     // get chess boarder pic from Mats warper
     cv::Mat cbPic = *(pics.mats[i]);
     //        cv::imshow("cbPic",cbPic);
     //        cv::waitKey(0);
-    if (cbPic.empty())
-    {
+    if (cbPic.empty()) {
       continue;
     }
-    if (imageSize.empty())
-    {
+    if (imageSize.empty()) {
       imageSize.height = cbPic.size[0];
       imageSize.width = cbPic.size[1];
     }
     std::vector<cv::Point2f> imageCorners;
 
-    if (accurcy)
-    {
+    if (accurcy) {
       bool found = cv::findChessboardCornersSB(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
           cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_ACCURACY);
-      if (!found)
-      {
+      if (!found) {
         continue;
       }
-    }
-    else
-    {
+    } else {
       bool found = cv::findChessboardCorners(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
           cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
               cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
-      if (!found)
-      {
+      if (!found) {
         continue;
       }
       cv::cornerSubPix(
@@ -71,8 +66,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
     cbPic.release();
     std::vector<cv::Point2f>().swap(imageCorners);
   }
-  if (objectPoints.empty())
-  {
+  if (objectPoints.empty()) {
     return -1;
   }
   std::vector<cv::Mat> rvecs, tvecs; //无用
@@ -85,21 +79,18 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   return res;
 }
 
-bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
-                    cv::Size patternSize, cv::Mat &external)
-{
-  if (pic.empty() || cameraMatrix.empty() || distCoffs.empty())
-  {
+bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
+                    const cv::Mat &distCoffs, cv::Size patternSize,
+                    cv::Mat &external) {
+  if (pic.empty() || cameraMatrix.empty() || distCoffs.empty()) {
     return false;
   }
 
   // 初始化棋盘格角点的世界坐标
   std::vector<cv::Point3f> objectCorners;
   int h = patternSize.height, w = patternSize.width;
-  for (int i = 0; i < h; i++)
-  {
-    for (int j = 0; j < w; j++)
-    {
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) {
       objectCorners.emplace_back(cv::Point3f(i, j, 0));
     }
   }
@@ -109,14 +100,19 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
       pic, cv::Size(patternSize.width, patternSize.height), imageCorners,
       cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ACCURACY |
           cv::CALIB_CB_EXHAUSTIVE);
+<<<<<<< HEAD
   if (!found)
   {
      return false;
+=======
+  if (!found) {
+    return false;
+>>>>>>> d2058faa408f069e20583cdf58c8b6bb62c3348a
   }
   cv::cornerSubPix(
-            pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
-            cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER,
-                             40, 0.001));
+      pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
+      cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 40,
+                       0.001));
 
   cv::Mat rvec, tvec;
   cv::solvePnPRansac(objectCorners, imageCorners, cameraMatrix, distCoffs, rvec,
@@ -126,13 +122,11 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
   cv::Mat rotateMat;
   cv::Rodrigues(rvec, rotateMat);
 
-  for (int i = 0; i < 3; i++)
-  {
+  for (int i = 0; i < 3; i++) {
     auto rvecRow = rotateMat.ptr<double>(i);
     auto tvecRow = tvec.ptr<double>(i);
     auto exRow = external.ptr<double>(i);
-    for (int j = 0; j < 3; j++)
-    {
+    for (int j = 0; j < 3; j++) {
       exRow[j] = rvecRow[j];
     }
     exRow[3] = tvecRow[0];
@@ -149,29 +143,24 @@ bool GetExternalMat(cv::Mat pic, cv::Mat cameraMatrix, cv::Mat distCoffs,
 }
 
 bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
-             Mat B)
-{
-  if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2)
-  {
+             Mat B) {
+  if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2) {
     return false;
   }
   cv::Mat picI = *(pics.mats[0]);
   cv::Mat picJ = *(pics.mats[1]);
-  if (picI.empty() || picJ.empty())
-  {
+  if (picI.empty() || picJ.empty()) {
     return false;
   }
   cv::Mat cmI = *(cameraMatrixs.mats[0]);
   cv::Mat cmJ = *(cameraMatrixs.mats[1]);
-  if (cmI.empty() || cmJ.empty())
-  {
+  if (cmI.empty() || cmJ.empty()) {
     return false;
   }
 
   cv::Mat disI = *(distCoffs.mats[0]);
   cv::Mat disJ = *(distCoffs.mats[1]);
-  if (disI.empty() || disJ.empty())
-  {
+  if (disI.empty() || disJ.empty()) {
     return false;
   }
 
@@ -179,14 +168,49 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
   cv::Mat eI, eJ;
 
   if (!GetExternalMat(picI, cmI, disI, psz, eI) ||
-      !GetExternalMat(picJ, cmJ, disJ, psz, eJ))
-  {
+      !GetExternalMat(picJ, cmJ, disJ, psz, eJ)) {
     return false;
   }
+
+  //  std::cout<<"output bji mats"<<std::endl;
+  //
+  //  cv::Mat Rj = eJ(cv::Rect(0,0,3,3)).clone();
+  //  cv::Mat Tj = eJ(cv::Rect(3,0,1,3)).clone();
+  //  std::cout<<Rj<<std::endl;
+  //  std::cout<<"---------------"<<std::endl;
+  //  std::cout<<Tj<<std::endl;
+  //  std::cout<<"---------------"<<std::endl;
+  //
+  //  std::cout<<eJ<<std::endl;
+  //  std::cout<<"---------------"<<std::endl;
+  //
+  //
+  //  cv::Mat Ri = eI(cv::Rect(0,0,3,3)).clone();
+  //  cv::Mat Ti = eI(cv::Rect(3,0,1,3)).clone();
+  //  std::cout<<Ri<<std::endl;
+  //  std::cout<<"---------------"<<std::endl;
+  //
+  //  std::cout<<Ti<<std::endl;
+  //  std::cout<<"---------------"<<std::endl;
+  //  std::cout<<eI<<std::endl;
+  //
+  //   std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
+  //  cv::Mat RiInv;
+  //  cv::invert(Ri,RiInv);
+  //  cv::Mat Rji = Rj*RiInv;
+  //  std::cout<<Rji<<std::endl<<std::endl;
+  //  cv::Mat Tji = Tj-Rji*Ti;
+  //  std::cout<<Tji<<std::endl;
+  //  std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
+
+  //  Ej = Bji*Ei
+  //  Bji = Ej*Ei_inv
 
   cv::Mat invEI;
   cv::invert(eI, invEI);
   *B = eJ * invEI;
+  // std::cout<<*B<<std::endl;
+  // std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
 
   // 释放内存
   picI.release();
@@ -200,20 +224,19 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
   return true;
 }
 
-bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize, Mat externalMat)
-{
+bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize,
+             Mat externalMat) {
   cv::Size psz(patternSize.width, patternSize.height);
   return GetExternalMat(*pic, *cameraMatrix, *distCoffs, psz, *externalMat);
 }
 
-bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat distCoeffs, Mat imagePoints)
-{
-  if (objectPoints->empty() || externalMat->empty() || cameraMatrix->empty() || distCoeffs->empty())
-  {
+bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix,
+                   Mat distCoeffs, Mat imagePoints) {
+  if (objectPoints->empty() || externalMat->empty() || cameraMatrix->empty() ||
+      distCoeffs->empty()) {
     return false;
   }
-  if (externalMat->size[0] != 4 || externalMat->size[1] != 4)
-  {
+  if (externalMat->size[0] != 4 || externalMat->size[1] != 4) {
     return false;
   }
 
@@ -224,7 +247,8 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat dist
   cv::Rodrigues(rotateMat, rvec);
 
   // 映射坐标
-  cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs, *imagePoints);
+  cv::projectPoints(*objectPoints, rvec, tvec, *cameraMatrix, *distCoeffs,
+                    *imagePoints);
   *imagePoints = (*imagePoints).reshape(2, (*objectPoints).size[0]);
 
   // 释放内存
