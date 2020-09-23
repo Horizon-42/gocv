@@ -1,15 +1,10 @@
 #include "camera_calibrate.h"
 
 double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
-<<<<<<< HEAD
                       Mat distCoffs, bool accurcy)
 {
   if (pics.length < 3)
   {
-=======
-                      Mat distCoffs, bool accurcy) {
-  if (pics.length < 13) {
->>>>>>> d2058faa408f069e20583cdf58c8b6bb62c3348a
     return -1;
   }
 
@@ -100,14 +95,9 @@ bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
       pic, cv::Size(patternSize.width, patternSize.height), imageCorners,
       cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_ACCURACY |
           cv::CALIB_CB_EXHAUSTIVE);
-<<<<<<< HEAD
   if (!found)
   {
      return false;
-=======
-  if (!found) {
-    return false;
->>>>>>> d2058faa408f069e20583cdf58c8b6bb62c3348a
   }
   cv::cornerSubPix(
       pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
