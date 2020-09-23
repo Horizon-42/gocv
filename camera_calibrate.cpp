@@ -3,7 +3,7 @@
 double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
                       Mat distCoffs, bool accurcy)
 {
-  if (pics.length < 13)
+  if (pics.length < 3)
   {
     return -1;
   }
@@ -77,7 +77,7 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   }
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
-                                   *cameraMatrix, *distCoffs, rvecs, tvecs);
+                                   *cameraMatrix, *distCoffs, rvecs, tvecs,cv::CALIB_FIX_K3);
 
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
