@@ -184,9 +184,46 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
     return false;
   }
 
+//  std::cout<<"output bji mats"<<std::endl;
+//
+//  cv::Mat Rj = eJ(cv::Rect(0,0,3,3)).clone();
+//  cv::Mat Tj = eJ(cv::Rect(3,0,1,3)).clone();
+//  std::cout<<Rj<<std::endl;
+//  std::cout<<"---------------"<<std::endl;
+//  std::cout<<Tj<<std::endl;
+//  std::cout<<"---------------"<<std::endl;
+//
+//  std::cout<<eJ<<std::endl;
+//  std::cout<<"---------------"<<std::endl;
+//
+//
+//  cv::Mat Ri = eI(cv::Rect(0,0,3,3)).clone();
+//  cv::Mat Ti = eI(cv::Rect(3,0,1,3)).clone();
+//  std::cout<<Ri<<std::endl;
+//  std::cout<<"---------------"<<std::endl;
+//
+//  std::cout<<Ti<<std::endl;
+//  std::cout<<"---------------"<<std::endl;
+//  std::cout<<eI<<std::endl;
+//
+//   std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
+//  cv::Mat RiInv;
+//  cv::invert(Ri,RiInv);
+//  cv::Mat Rji = Rj*RiInv;
+//  std::cout<<Rji<<std::endl<<std::endl;
+//  cv::Mat Tji = Tj-Rji*Ti;
+//  std::cout<<Tji<<std::endl;
+//  std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
+
+//  Ej = Bji*Ei
+//  Bji = Ej*Ei_inv
+
+
   cv::Mat invEI;
   cv::invert(eI, invEI);
   *B = eJ * invEI;
+  std::cout<<*B<<std::endl;
+  std::cout<<"&&&&&&&&&&&&&&&&&&&"<<std::endl;
 
   // 释放内存
   picI.release();
@@ -233,3 +270,6 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix, Mat dist
   rotateMat.release();
   return true;
 }
+
+
+

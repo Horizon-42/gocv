@@ -18,6 +18,7 @@ extern "C"
                           Mat distCoffs, bool accuracy);
     bool GetBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
                  Mat B);
+    
 
     bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize, Mat externalMat);
 
