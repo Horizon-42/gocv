@@ -11,8 +11,10 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   // 初始化棋盘格角点的世界坐标
   std::vector<cv::Point3f> objectCorners;
   int h = patternSize.height, w = patternSize.width;
-  for (int i = 0; i < h; i++) {
-    for (int j = 0; j < w; j++) {
+  for (int i = 0; i < h; i++)
+  {
+    for (int j = 0; j < w; j++)
+    {
       objectCorners.emplace_back(cv::Point3f(i, j, 0));
     }
   }
@@ -21,33 +23,41 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   std::vector<std::vector<cv::Point3f>> objectPoints;
   std::vector<std::vector<cv::Point2f>> imagePoints;
   cv::Size imageSize;
-  for (int i = 0; i < pics.length; i++) {
+  for (int i = 0; i < pics.length; i++)
+  {
     // get chess boarder pic from Mats warper
     cv::Mat cbPic = *(pics.mats[i]);
     //        cv::imshow("cbPic",cbPic);
     //        cv::waitKey(0);
-    if (cbPic.empty()) {
+    if (cbPic.empty())
+    {
       continue;
     }
-    if (imageSize.empty()) {
+    if (imageSize.empty())
+    {
       imageSize.height = cbPic.size[0];
       imageSize.width = cbPic.size[1];
     }
     std::vector<cv::Point2f> imageCorners;
 
-    if (accurcy) {
+    if (accurcy)
+    {
       bool found = cv::findChessboardCornersSB(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
           cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_ACCURACY);
-      if (!found) {
+      if (!found)
+      {
         continue;
       }
-    } else {
+    }
+    else
+    {
       bool found = cv::findChessboardCorners(
           cbPic, cv::Size(patternSize.width, patternSize.height), imageCorners,
           cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE +
               cv::CALIB_CB_FAST_CHECK + cv::CALIB_CB_ACCURACY);
-      if (!found) {
+      if (!found)
+      {
         continue;
       }
       cv::cornerSubPix(
@@ -61,12 +71,13 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
     cbPic.release();
     std::vector<cv::Point2f>().swap(imageCorners);
   }
-  if (objectPoints.empty()) {
+  if (objectPoints.empty())
+  {
     return -1;
   }
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
-                                   *cameraMatrix, *distCoffs, rvecs, tvecs,cv::CALIB_FIX_K3);
+                                   *cameraMatrix, *distCoffs, rvecs, tvecs, cv::CALIB_FIX_K3);
 
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
@@ -76,16 +87,20 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
 
 bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
                     const cv::Mat &distCoffs, cv::Size patternSize,
-                    cv::Mat &external) {
-  if (pic.empty() || cameraMatrix.empty() || distCoffs.empty()) {
+                    cv::Mat &external)
+{
+  if (pic.empty() || cameraMatrix.empty() || distCoffs.empty())
+  {
     return false;
   }
 
   // 初始化棋盘格角点的世界坐标
   std::vector<cv::Point3f> objectCorners;
   int h = patternSize.height, w = patternSize.width;
-  for (int i = 0; i < h; i++) {
-    for (int j = 0; j < w; j++) {
+  for (int i = 0; i < h; i++)
+  {
+    for (int j = 0; j < w; j++)
+    {
       objectCorners.emplace_back(cv::Point3f(i, j, 0));
     }
   }
@@ -97,7 +112,7 @@ bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
           cv::CALIB_CB_EXHAUSTIVE);
   if (!found)
   {
-     return false;
+    return false;
   }
   cv::cornerSubPix(
       pic, imageCorners, cv::Size(5, 5), cv::Size(-1, -1),
@@ -112,11 +127,13 @@ bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
   cv::Mat rotateMat;
   cv::Rodrigues(rvec, rotateMat);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
+  {
     auto rvecRow = rotateMat.ptr<double>(i);
     auto tvecRow = tvec.ptr<double>(i);
     auto exRow = external.ptr<double>(i);
-    for (int j = 0; j < 3; j++) {
+    for (int j = 0; j < 3; j++)
+    {
       exRow[j] = rvecRow[j];
     }
     exRow[3] = tvecRow[0];
@@ -133,24 +150,29 @@ bool GetExternalMat(const cv::Mat &pic, const cv::Mat &cameraMatrix,
 }
 
 bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
-             Mat B) {
-  if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2) {
+             Mat B)
+{
+  if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2)
+  {
     return false;
   }
   cv::Mat picI = *(pics.mats[0]);
   cv::Mat picJ = *(pics.mats[1]);
-  if (picI.empty() || picJ.empty()) {
+  if (picI.empty() || picJ.empty())
+  {
     return false;
   }
   cv::Mat cmI = *(cameraMatrixs.mats[0]);
   cv::Mat cmJ = *(cameraMatrixs.mats[1]);
-  if (cmI.empty() || cmJ.empty()) {
+  if (cmI.empty() || cmJ.empty())
+  {
     return false;
   }
 
   cv::Mat disI = *(distCoffs.mats[0]);
   cv::Mat disJ = *(distCoffs.mats[1]);
-  if (disI.empty() || disJ.empty()) {
+  if (disI.empty() || disJ.empty())
+  {
     return false;
   }
 
@@ -158,7 +180,8 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
   cv::Mat eI, eJ;
 
   if (!GetExternalMat(picI, cmI, disI, psz, eI) ||
-      !GetExternalMat(picJ, cmJ, disJ, psz, eJ)) {
+      !GetExternalMat(picJ, cmJ, disJ, psz, eJ))
+  {
     return false;
   }
 
@@ -215,18 +238,22 @@ bool GetBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
 }
 
 bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize,
-             Mat externalMat) {
+             Mat externalMat)
+{
   cv::Size psz(patternSize.width, patternSize.height);
   return GetExternalMat(*pic, *cameraMatrix, *distCoffs, psz, *externalMat);
 }
 
 bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix,
-                   Mat distCoeffs, Mat imagePoints) {
+                   Mat distCoeffs, Mat imagePoints)
+{
   if (objectPoints->empty() || externalMat->empty() || cameraMatrix->empty() ||
-      distCoeffs->empty()) {
+      distCoeffs->empty())
+  {
     return false;
   }
-  if (externalMat->size[0] != 4 || externalMat->size[1] != 4) {
+  if (externalMat->size[0] != 4 || externalMat->size[1] != 4)
+  {
     return false;
   }
 
@@ -246,4 +273,114 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix,
   tvec.release();
   rotateMat.release();
   return true;
+}
+
+/**
+ * return error code
+ * -1 input mats empty
+ * -2 found chessboard failed
+ **/
+int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
+                  Mat B)
+{
+  if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2)
+  {
+    return -1;
+  }
+  cv::Mat picI = *(pics.mats[0]);
+  cv::Mat picJ = *(pics.mats[1]);
+  if (picI.empty() || picJ.empty())
+  {
+    return -1;
+  }
+  cv::Mat cmI = *(cameraMatrixs.mats[0]);
+  cv::Mat cmJ = *(cameraMatrixs.mats[1]);
+  if (cmI.empty() || cmJ.empty())
+  {
+    return -1;
+  }
+
+  cv::Mat disI = *(distCoffs.mats[0]);
+  cv::Mat disJ = *(distCoffs.mats[1]);
+  if (disI.empty() || disJ.empty())
+  {
+    return -1;
+  }
+
+  cv::Size imageSize(patternSize.width, patternSize.height);
+
+  const int maxScale = 2;
+
+  std::vector<cv::Point2f> imagePoints[2];
+  int countFound = 0;
+  for (int i = 0; i < 2; ++i)
+  {
+    bool found = false;
+    vector<cv::Point2f> &corners = imagePoints[i];
+    for (int scale = 1; scale <= maxScale; scale++)
+    {
+      cv::Mat timg;
+      if (scale == 1)
+        timg = img;
+      else
+        resize(img, timg, Size(), scale, scale, INTER_LINEAR_EXACT);
+      found = findChessboardCorners(timg, boardSize, corners,
+                                    CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE);
+      if (found)
+      {
+        if (scale > 1)
+        {
+          Mat cornersMat(corners);
+          cornersMat *= 1. / scale;
+        }
+        break;
+      }
+    }
+
+    if (!found)
+    {
+      break;
+    }
+    else
+    {
+      countFound += 1;
+    }
+
+    cornerSubPix(img, corners, Size(11, 11), Size(-1, -1),
+                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS,
+                              30, 0.01));
+  }
+
+  if (countFound < 2)
+  {
+    return -1;
+  }
+
+  // 初始化棋盘格角点的世界坐标
+  std::vector<cv::Point3f> objectCorners;
+  int h = patternSize.height, w = patternSize.width;
+  for (int i = 0; i < h; i++)
+  {
+    for (int j = 0; j < w; j++)
+    {
+      objectCorners.emplace_back(cv::Point3f(i, j, 0));
+    }
+  }
+
+  cv::Mat R, T, E, F;
+
+  double rms = stereoCalibrate(objectCorners, imagePoints[0], imagePoints[1],
+                               cmI, disI,
+                               cmJ, disJ,
+                               imageSize, R, T, E, F,
+                               CALIB_FIX_ASPECT_RATIO +
+                                   CALIB_ZERO_TANGENT_DIST +
+                                   CALIB_USE_INTRINSIC_GUESS +
+                                   CALIB_SAME_FOCAL_LENGTH +
+                                   CALIB_RATIONAL_MODEL +
+                                   CALIB_FIX_K3 + CALIB_FIX_K4 + CALIB_FIX_K5,
+                               TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 100, 1e-5));
+  std::cout << "done with RMS error=" << rms << std::endl;
+  *B(cv::Rect(0, 0, 3, 3)) = R;
+  *B(cv::Rect(3, 0, 4, 3)) = T;
 }

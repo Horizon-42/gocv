@@ -19,7 +19,8 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
 bool GetBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
              Mat B);
 
-bool GetStereoBMat();
+int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
+             Mat B);
 
 bool GetEMat(Mat pic, Mat cameraMatrix, Mat distCoffs, Size patternSize,
              Mat externalMat);
