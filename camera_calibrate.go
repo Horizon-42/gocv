@@ -65,6 +65,40 @@ func GetBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Ma
 	return bool(C.GetBMat(cPics, cCameraMats, cDistCoffs, sz, B.Ptr()))
 }
 
+func GetSteroeBMat(pics, cameraMatrix, distCoffs []Mat, patternSize image.Point, B *Mat) int {
+	if len(pics) != 2 || len(cameraMatrix) != 2 || len(distCoffs) != 2 {
+		panic("input error")
+	}
+
+	cPicArray := make([]C.Mat, 2)
+	cCameraMatArray := make([]C.Mat, 2)
+	cDistCoffsArray := make([]C.Mat, 2)
+
+	for i := 0; i < 2; i++ {
+		cPicArray[i] = pics[i].p
+		cCameraMatArray[i] = cameraMatrix[i].p
+		cDistCoffsArray[i] = distCoffs[i].p
+	}
+
+	cPics := C.struct_Mats{
+		mats:   (*C.Mat)(&cPicArray[0]),
+		length: C.int(2),
+	}
+	cCameraMats := C.struct_Mats{
+		mats:   (*C.Mat)(&cCameraMatArray[0]),
+		length: C.int(2),
+	}
+	cDistCoffs := C.struct_Mats{
+		mats:   (*C.Mat)(&cDistCoffsArray[0]),
+		length: C.int(2),
+	}
+	sz := C.struct_Size{
+		width:  C.int(patternSize.X),
+		height: C.int(patternSize.Y),
+	}
+	return int(C.GetStereoBMat(cPics, cCameraMats, cDistCoffs, sz, B.Ptr()))
+}
+
 func GetExternalMat(pic, cameraMatrix, distCoffs Mat, patternSize image.Point, externalMat *Mat) bool {
 	sz := C.struct_Size{
 		width:  C.int(patternSize.X),

@@ -373,14 +373,15 @@ int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize
                                cmI, disI,
                                cmJ, disJ,
                                imageSize, R, T, E, F,
-                               CALIB_FIX_ASPECT_RATIO +
-                                   CALIB_ZERO_TANGENT_DIST +
-                                   CALIB_USE_INTRINSIC_GUESS +
-                                   CALIB_SAME_FOCAL_LENGTH +
-                                   CALIB_RATIONAL_MODEL +
-                                   CALIB_FIX_K3 + CALIB_FIX_K4 + CALIB_FIX_K5,
-                               TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 100, 1e-5));
+                               cv::CALIB_FIX_ASPECT_RATIO +
+                                   cv::CALIB_ZERO_TANGENT_DIST +
+                                   cv::CALIB_USE_INTRINSIC_GUESS +
+                                   cv::CALIB_SAME_FOCAL_LENGTH +
+                                   cv::CALIB_RATIONAL_MODEL +
+                                   cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
+                               cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
   std::cout << "done with RMS error=" << rms << std::endl;
   *B(cv::Rect(0, 0, 3, 3)) = R;
   *B(cv::Rect(3, 0, 4, 3)) = T;
+  return 0;
 }
