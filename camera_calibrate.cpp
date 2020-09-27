@@ -77,7 +77,8 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   }
   std::vector<cv::Mat> rvecs, tvecs; //无用
   double res = cv::calibrateCamera(objectPoints, imagePoints, imageSize,
-                                   *cameraMatrix, *distCoffs, rvecs, tvecs, cv::CALIB_FIX_K3);
+                                   *cameraMatrix, *distCoffs, rvecs, tvecs,
+                                   cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5);
 
   // 释放内存
   std::vector<cv::Mat>().swap(rvecs);
@@ -287,7 +288,7 @@ int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSiz
   {
     return -1;
   }
-  cv::Mat imgs[2]{*(pics.mats[0]),*(pics.mats[1])};
+  cv::Mat imgs[2]{*(pics.mats[0]), *(pics.mats[1])};
   if (imgs[0].empty() || imgs[1].empty())
   {
     return -1;
@@ -299,7 +300,7 @@ int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSiz
     return -1;
   }
 
-  cv::Mat distCoeffs[2]{*(distCoffs.mats[0]),*(distCoffs.mats[1])};
+  cv::Mat distCoeffs[2]{*(distCoffs.mats[0]), *(distCoffs.mats[1])};
   if (distCoeffs[0].empty() || distCoeffs[1].empty())
   {
     return -1;
@@ -350,12 +351,12 @@ int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSiz
 
     cornerSubPix(imgs[i], corners, cv::Size(11, 11), cv::Size(-1, -1),
                  cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS,
-                              30, 0.01));
+                                  30, 0.01));
   }
 
   if (countFound < 2)
   {
-    std::cout<<"get corners failed"<<std::endl;
+    std::cout << "get corners failed" << std::endl;
     return -1;
   }
 
@@ -371,10 +372,11 @@ int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSiz
   }
 
   cv::Mat R, T, E, F;
-  std::cout<<"steroe calibrating..."<<std::endl;
+  std::cout << "steroe calibrating..." << std::endl;
   //std::cout<<imagePoints[0]<<std::endl<<std::endl;
-  std::cout<<imagePoints[1].size()<<std::endl;
-  std::cout<<cmI<<std::endl<<cmJ<<std::endl;
+  std::cout << imagePoints[1].size() << std::endl;
+  std::cout << cmI << std::endl
+            << cmJ << std::endl;
   double rms = stereoCalibrate(objectCorners, imagePoints[0], imagePoints[1],
                                cmI, distCoeffs[0],
                                cmJ, distCoeffs[1],
@@ -389,39 +391,39 @@ int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSiz
   std::cout << "done with RMS error=" << rms << std::endl;
   std::cout << R << std::endl;
   std::cout << T << std::endl;
-  *B = cv::Mat::zeros(4,4,CV_64FC1);
+  *B = cv::Mat::zeros(4, 4, CV_64FC1);
   R.copyTo((*B)(cv::Rect(0, 0, 3, 3)));
   T.copyTo((*B)(cv::Rect(3, 0, 1, 3)));
-  (*B).at<double>(3,3)=1;
+  (*B).at<double>(3, 3) = 1;
 
   // CALIBRATION QUALITY CHECK
   // because the output fundamental matrix implicitly
   // includes all the output information,
   // we can check the quality of calibration using the
   // epipolar geometry constraint: m2^t*F*m1=0
-//      double err = 0;
-//      int npoints = 0;
-//      std::vector<cv::Vec3f> lines[2];
-//      for( int i = 0; i < 1; i++ )
-//      {
-//          int npt = (int)imagePoints[0][i].size();
-//          Mat imgpt[2];
-//          for( int k = 0; k < 2; k++ )
-//          {
-//              imgpt[k] = Mat(imagePoints[k][i]);
-//              cv::undistortPoints(imgpt[k], imgpt[k], cameraMatrix[k], distCoeffs[k], Mat(), cameraMatrix[k]);
-//              cv::computeCorrespondEpilines(imgpt[k], k+1, F, lines[k]);
-//          }
-//          for( int j = 0; j < npt; j++ )
-//          {
-//              double errij = fabs(imagePoints[0][i][j].x*lines[1][j][0] +
-//                                  imagePoints[0][i][j].y*lines[1][j][1] + lines[1][j][2]) +
-//                             fabs(imagePoints[1][i][j].x*lines[0][j][0] +
-//                                  imagePoints[1][i][j].y*lines[0][j][1] + lines[0][j][2]);
-//              err += errij;
-//          }
-//          npoints += npt;
-//      }
-//      std::cout << "average epipolar err = " <<  err/npoints << std::endl;
+  //      double err = 0;
+  //      int npoints = 0;
+  //      std::vector<cv::Vec3f> lines[2];
+  //      for( int i = 0; i < 1; i++ )
+  //      {
+  //          int npt = (int)imagePoints[0][i].size();
+  //          Mat imgpt[2];
+  //          for( int k = 0; k < 2; k++ )
+  //          {
+  //              imgpt[k] = Mat(imagePoints[k][i]);
+  //              cv::undistortPoints(imgpt[k], imgpt[k], cameraMatrix[k], distCoeffs[k], Mat(), cameraMatrix[k]);
+  //              cv::computeCorrespondEpilines(imgpt[k], k+1, F, lines[k]);
+  //          }
+  //          for( int j = 0; j < npt; j++ )
+  //          {
+  //              double errij = fabs(imagePoints[0][i][j].x*lines[1][j][0] +
+  //                                  imagePoints[0][i][j].y*lines[1][j][1] + lines[1][j][2]) +
+  //                             fabs(imagePoints[1][i][j].x*lines[0][j][0] +
+  //                                  imagePoints[1][i][j].y*lines[0][j][1] + lines[0][j][2]);
+  //              err += errij;
+  //          }
+  //          npoints += npt;
+  //      }
+  //      std::cout << "average epipolar err = " <<  err/npoints << std::endl;
   return 0;
 }

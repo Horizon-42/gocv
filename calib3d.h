@@ -21,6 +21,8 @@ extern "C"
 
     bool FindChessboardCorners(Mat image, Size patternSize, Mat corners, int flags);
     void DrawChessboardCorners(Mat image, Size patternSize, Mat corners, bool patternWasFound);
+    int CalibrateCamera(Mat objectPoints, Mat imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs, Mats rvecs, Mats tvecs, int flags, TermCriteria criteria);
+
 #ifdef __cplusplus
 }
 #endif

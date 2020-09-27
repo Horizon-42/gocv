@@ -138,3 +138,7 @@ func DrawChessboardCorners(image *Mat, patternSize image.Point, corners Mat, pat
 	}
 	C.DrawChessboardCorners(image.Ptr(), sz, corners.Ptr(), C.bool(patternWasFound))
 }
+
+func CalibrateCamera()  {
+	
+}
