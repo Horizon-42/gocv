@@ -58,12 +58,12 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
     for (int i = 0; i < imagePoints.length; i++)
     {
         objectPointsVec.push_back((*objectPoints).reshape(3,objectPoints->rows));
-        std::cout<<*objectPoints<<std::endl<<std::endl;
+        std::cout<<(*objectPoints).reshape(3,objectPoints->rows).size()<<std::endl<<std::endl;
         imagePointsVec.push_back((*(imagePoints.mats[i])).reshape(2,imagePoints.mats[i]->rows));
-        std::cout<<*(imagePoints.mats[i])<<std::endl<<std::endl;
+        std::cout<<(*(imagePoints.mats[i])).reshape(2,imagePoints.mats[i]->rows).size()<<std::endl<<std::endl;
         std::cout<<"----------------"<<std::endl;
     }
-
+    std::cout<<"calibrate..."<<std::endl;
     double ret = cv::calibrateCamera(objectPointsVec, imagePointsVec, imsz, *cameraMatrix, *distCoeffs, rotateVecs, transVecs, flags, *criteria);
 //    // 给 rvecs 和 tvecs 赋值
 //    rvecs->mats = new Mat[rotateVecs.size()];

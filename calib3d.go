@@ -141,7 +141,7 @@ func DrawChessboardCorners(image *Mat, patternSize image.Point, corners Mat, pat
 
 func CalibrateCamera(objectPoints Mat, imagePoints []Mat, imageSize image.Point,
 	cameraMat, distCoeffs *Mat,
-	flags CalibCBFlag, criteria TermCriteria) float64 {
+	flags CalibFlag, criteria TermCriteria) float64 {
 	sz := C.struct_Size{
 		width:  C.int(imageSize.X),
 		height: C.int(imageSize.Y),
