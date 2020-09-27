@@ -47,23 +47,35 @@ void DrawChessboardCorners(Mat image, Size patternSize, Mat corners, bool patter
     cv::drawChessboardCorners(*image, sz, *corners, patternWasFound);
 }
 
-double CalibrateCamera(Mat objectPoints, Mat imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs, Mats *rvecs, Mats *tvecs, int flags, TermCriteria criteria)
+double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs,
+    int flags, TermCriteria criteria)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
     std::vector<cv::Mat> rotateVecs;
     std::vector<cv::Mat> transVecs;
-    double ret = cv::calibrateCamera(*objectPoints, *imagePoints, imsz, *cameraMatrix, *distCoeffs, rotateVecs, transVecs, flags, *criteria);
-    // 给 rvecs 和 tvecs 赋值
-    rvecs->mats = new Mat[rotateVecs.size()];
-    tvecs->mats = new Mat[transVecs.size()];
-    for (int i = 0; i < rotateVecs.size(); i++)
+    std::vector<cv::Mat> objectPointsVec, imagePointsVec;
+
+    for (int i = 0; i < imagePoints.length; i++)
     {
-        rvecs->mats[i] = new cv::Mat(rotateVecs[i]);
-        tvecs->mats[i] = new cv::Mat(transVecs[i]);
+        objectPointsVec.push_back((*objectPoints).reshape(3,objectPoints->rows));
+        std::cout<<*objectPoints<<std::endl<<std::endl;
+        imagePointsVec.push_back((*(imagePoints.mats[i])).reshape(2,imagePoints.mats[i]->rows));
+        std::cout<<*(imagePoints.mats[i])<<std::endl<<std::endl;
+        std::cout<<"----------------"<<std::endl;
     }
 
-    rvecs->length = int(rotateVecs.size());
-    tvecs->length = int(transVecs.size());
+    double ret = cv::calibrateCamera(objectPointsVec, imagePointsVec, imsz, *cameraMatrix, *distCoeffs, rotateVecs, transVecs, flags, *criteria);
+//    // 给 rvecs 和 tvecs 赋值
+//    rvecs->mats = new Mat[rotateVecs.size()];
+//    tvecs->mats = new Mat[transVecs.size()];
+//    for (int i = 0; i < rotateVecs.size(); i++)
+//    {
+//        rvecs->mats[i] = new cv::Mat(rotateVecs[i]);
+//        tvecs->mats[i] = new cv::Mat(transVecs[i]);
+//    }
+//
+//    rvecs->length = int(rotateVecs.size());
+//    tvecs->length = int(transVecs.size());
 
     return ret;
 }

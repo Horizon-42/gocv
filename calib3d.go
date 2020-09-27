@@ -139,6 +139,36 @@ func DrawChessboardCorners(image *Mat, patternSize image.Point, corners Mat, pat
 	C.DrawChessboardCorners(image.Ptr(), sz, corners.Ptr(), C.bool(patternWasFound))
 }
 
-func CalibrateCamera()  {
-	
+func CalibrateCamera(objectPoints Mat, imagePoints []Mat, imageSize image.Point,
+	cameraMat, distCoeffs *Mat,
+	flags CalibCBFlag, criteria TermCriteria) float64 {
+	sz := C.struct_Size{
+		width:  C.int(imageSize.X),
+		height: C.int(imageSize.Y),
+	}
+	imgArray := make([]C.Mat, len(imagePoints))
+	for i := 0; i < len(imagePoints); i++ {
+		imgArray[i] = imagePoints[i].p
+	}
+	imgPoints := C.struct_Mats{
+		mats:   (*C.Mat)(&imgArray[0]),
+		length: C.int(len(imagePoints)),
+	}
+	//rVecs := C.struct_Mats{
+	//	mats:   nil,
+	//	length: 0,
+	//}
+	////(*tvecs) = make([]Mat, 0)
+	////(*rvecs) = make([]Mat, 0)
+	//tVecs := C.struct_Mats{
+	//	mats:   nil,
+	//	length: C.int(0),
+	//}
+	res := C.CalibrateCamera(objectPoints.p, imgPoints, sz, cameraMat.Ptr(),
+		distCoeffs.Ptr(), C.int(flags), criteria.p)
+	//for i := 0; i < tVecs.length; i++ {
+	//	*tvecs = append(*tvecs, newMat(*(tVecs.mats + i)))
+	//	*rvecs = append(*rvecs, newMat(*(rVecs.mats + i)))
+	//}
+	return float64(res)
 }
