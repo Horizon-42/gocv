@@ -280,16 +280,15 @@ bool ProjectPoints(Mat objectPoints, Mat externalMat, Mat cameraMatrix,
  * -1 input mats empty
  * -2 found chessboard failed
  **/
-int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize,
+int GetStereoBMat(Mats pics, Mats cameraMatrixs, Mats distCoffs, Size patternSize,
                   Mat B)
 {
   if (pics.length != 2 || cameraMatrixs.length != 2 || distCoffs.length != 2)
   {
     return -1;
   }
-  cv::Mat picI = *(pics.mats[0]);
-  cv::Mat picJ = *(pics.mats[1]);
-  if (picI.empty() || picJ.empty())
+  cv::Mat imgs[2]{*(pics.mats[0]),*(pics.mats[1])};
+  if (imgs[0].empty() || imgs[1].empty())
   {
     return -1;
   }
@@ -300,37 +299,40 @@ int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize
     return -1;
   }
 
-  cv::Mat disI = *(distCoffs.mats[0]);
-  cv::Mat disJ = *(distCoffs.mats[1]);
-  if (disI.empty() || disJ.empty())
+  cv::Mat distCoeffs[2]{*(distCoffs.mats[0]),*(distCoffs.mats[1])};
+  if (distCoeffs[0].empty() || distCoeffs[1].empty())
   {
     return -1;
   }
 
-  cv::Size imageSize(patternSize.width, patternSize.height);
+  cv::Size boardSize(patternSize.width, patternSize.height);
+  cv::Size imageSize = imgs[0].size();
 
   const int maxScale = 2;
 
-  std::vector<cv::Point2f> imagePoints[2];
+  std::vector<std::vector<cv::Point2f>> imagePoints[2];
+  imagePoints[0].resize(1);
+  imagePoints[1].resize(1);
+
   int countFound = 0;
   for (int i = 0; i < 2; ++i)
   {
     bool found = false;
-    vector<cv::Point2f> &corners = imagePoints[i];
+    std::vector<cv::Point2f> &corners = imagePoints[i][0];
     for (int scale = 1; scale <= maxScale; scale++)
     {
       cv::Mat timg;
       if (scale == 1)
-        timg = img;
+        timg = imgs[i];
       else
-        resize(img, timg, Size(), scale, scale, INTER_LINEAR_EXACT);
+        cv::resize(imgs[i], timg, cv::Size(), scale, scale, cv::INTER_LINEAR_EXACT);
       found = findChessboardCorners(timg, boardSize, corners,
-                                    CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE);
+                                    cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_NORMALIZE_IMAGE | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_ACCURACY);
       if (found)
       {
         if (scale > 1)
         {
-          Mat cornersMat(corners);
+          cv::Mat cornersMat(corners);
           cornersMat *= 1. / scale;
         }
         break;
@@ -346,32 +348,36 @@ int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize
       countFound += 1;
     }
 
-    cornerSubPix(img, corners, Size(11, 11), Size(-1, -1),
-                 TermCriteria(TermCriteria::COUNT + TermCriteria::EPS,
+    cornerSubPix(imgs[i], corners, cv::Size(11, 11), cv::Size(-1, -1),
+                 cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS,
                               30, 0.01));
   }
 
   if (countFound < 2)
   {
+    std::cout<<"get corners failed"<<std::endl;
     return -1;
   }
 
   // 初始化棋盘格角点的世界坐标
-  std::vector<cv::Point3f> objectCorners;
+  std::vector<std::vector<cv::Point3f>> objectCorners(1);
   int h = patternSize.height, w = patternSize.width;
   for (int i = 0; i < h; i++)
   {
     for (int j = 0; j < w; j++)
     {
-      objectCorners.emplace_back(cv::Point3f(i, j, 0));
+      objectCorners[0].emplace_back(cv::Point3f(i, j, 0));
     }
   }
 
   cv::Mat R, T, E, F;
-
+  std::cout<<"steroe calibrating..."<<std::endl;
+  //std::cout<<imagePoints[0]<<std::endl<<std::endl;
+  std::cout<<imagePoints[1].size()<<std::endl;
+  std::cout<<cmI<<std::endl<<cmJ<<std::endl;
   double rms = stereoCalibrate(objectCorners, imagePoints[0], imagePoints[1],
-                               cmI, disI,
-                               cmJ, disJ,
+                               cmI, distCoeffs[0],
+                               cmJ, distCoeffs[1],
                                imageSize, R, T, E, F,
                                cv::CALIB_FIX_ASPECT_RATIO +
                                    cv::CALIB_ZERO_TANGENT_DIST +
@@ -381,7 +387,41 @@ int GetStereoBMat(Mats pics, Mats cameraMatrix, Mats distCoffs, Size patternSize
                                    cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
                                cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
   std::cout << "done with RMS error=" << rms << std::endl;
-  *B(cv::Rect(0, 0, 3, 3)) = R;
-  *B(cv::Rect(3, 0, 4, 3)) = T;
+  std::cout << R << std::endl;
+  std::cout << T << std::endl;
+  *B = cv::Mat::zeros(4,4,CV_64FC1);
+  R.copyTo((*B)(cv::Rect(0, 0, 3, 3)));
+  T.copyTo((*B)(cv::Rect(3, 0, 1, 3)));
+  (*B).at<double>(3,3)=1;
+
+  // CALIBRATION QUALITY CHECK
+  // because the output fundamental matrix implicitly
+  // includes all the output information,
+  // we can check the quality of calibration using the
+  // epipolar geometry constraint: m2^t*F*m1=0
+//      double err = 0;
+//      int npoints = 0;
+//      std::vector<cv::Vec3f> lines[2];
+//      for( int i = 0; i < 1; i++ )
+//      {
+//          int npt = (int)imagePoints[0][i].size();
+//          Mat imgpt[2];
+//          for( int k = 0; k < 2; k++ )
+//          {
+//              imgpt[k] = Mat(imagePoints[k][i]);
+//              cv::undistortPoints(imgpt[k], imgpt[k], cameraMatrix[k], distCoeffs[k], Mat(), cameraMatrix[k]);
+//              cv::computeCorrespondEpilines(imgpt[k], k+1, F, lines[k]);
+//          }
+//          for( int j = 0; j < npt; j++ )
+//          {
+//              double errij = fabs(imagePoints[0][i][j].x*lines[1][j][0] +
+//                                  imagePoints[0][i][j].y*lines[1][j][1] + lines[1][j][2]) +
+//                             fabs(imagePoints[1][i][j].x*lines[0][j][0] +
+//                                  imagePoints[1][i][j].y*lines[0][j][1] + lines[0][j][2]);
+//              err += errij;
+//          }
+//          npoints += npt;
+//      }
+//      std::cout << "average epipolar err = " <<  err/npoints << std::endl;
   return 0;
 }
