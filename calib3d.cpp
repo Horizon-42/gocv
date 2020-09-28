@@ -51,21 +51,35 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
     int flags, TermCriteria criteria)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
-    std::vector<cv::Mat> rotateVecs;
-    std::vector<cv::Mat> transVecs;
-    std::vector<cv::Mat> objectPointsVec, imagePointsVec;
-
+    std::vector<cv::Mat> rotateVecs, transVecs;
+    std::vector<std::vector<cv::Point3f>> objectPointsVec;
+    std::vector<std::vector<cv::Point2f>> imagePointsVec;
+    std::vector<cv::Point3f> objPts;
+    for (int i = 0; i < objectPoints->rows; i++)
+    {
+        auto row = objectPoints->ptr<float>(i);
+        objPts.emplace_back(cv::Point3f(row[0],row[1],row[2]));
+    }
+    
     for (int i = 0; i < imagePoints.length; i++)
     {
-        objectPointsVec.push_back((*objectPoints).reshape(3,objectPoints->rows));
-        std::cout<<(*objectPoints).reshape(3,objectPoints->rows).size()<<std::endl<<std::endl;
-        imagePointsVec.push_back((*(imagePoints.mats[i])).reshape(2,imagePoints.mats[i]->rows));
-        std::cout<<(*(imagePoints.mats[i])).reshape(2,imagePoints.mats[i]->rows).size()<<std::endl<<std::endl;
-        std::cout<<"----------------"<<std::endl;
+        objectPointsVec.push_back(objPts);
+        std::vector<cv::Point2f> imgPts;
+        std::cout<<*(imagePoints.mats[i])<<std::endl;
+        for (int j = 0; j < imagePoints.mats[i]->rows; j++)
+        {
+            auto row = imagePoints.mats[i]->ptr<float>(i);
+            imgPts.emplace_back(cv::Point2f(row[0],row[1]));
+        }
+        
+        imagePointsVec.push_back(imgPts);
     }
     std::cout<<"calibrate..."<<std::endl;
-    double ret = cv::calibrateCamera(objectPointsVec, imagePointsVec, imsz, *cameraMatrix, *distCoeffs, rotateVecs, transVecs, flags, *criteria);
-//    // 给 rvecs 和 tvecs 赋值
+    std::cout<<imsz<<std::endl;
+    std::cout<<objectPointsVec.size()<<"\t"<<imagePointsVec.size()<<std::endl;
+    double ret = cv::calibrateCamera(objectPointsVec, imagePointsVec, imsz, *cameraMatrix, *distCoeffs, rotateVecs, transVecs, cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5);
+    std::cout<<"done"<<std::endl;
+ //    // 给 rvecs 和 tvecs 赋值
 //    rvecs->mats = new Mat[rotateVecs.size()];
 //    tvecs->mats = new Mat[transVecs.size()];
 //    for (int i = 0; i < rotateVecs.size(); i++)
