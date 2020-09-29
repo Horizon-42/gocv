@@ -131,6 +131,14 @@ func FindChessboardCorners(image Mat, patternSize image.Point, corners *Mat, fla
 	return bool(C.FindChessboardCorners(image.Ptr(), sz, corners.Ptr(), C.int(flags)))
 }
 
+func FindChessboardCornersSB(image Mat, patternSize image.Point, corners *Mat, flags CalibCBFlag) bool {
+	sz := C.struct_Size{
+		width:  C.int(patternSize.X),
+		height: C.int(patternSize.Y),
+	}
+	return bool(C.FindChessboardCorners(image.Ptr(), sz, corners.Ptr(), C.int(flags)))
+}
+
 func DrawChessboardCorners(image *Mat, patternSize image.Point, corners Mat, patternWasFound bool) {
 	sz := C.struct_Size{
 		width:  C.int(patternSize.X),

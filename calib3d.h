@@ -19,6 +19,7 @@ extern "C"
     Mat GetOptimalNewCameraMatrixWithParams(Mat cameraMatrix, Mat distCoeffs, Size size, double alpha, Size newImgSize, Rect *validPixROI, bool centerPrincipalPoint);
     void Undistort(Mat src, Mat dst, Mat cameraMatrix, Mat distCoeffs, Mat newCameraMatrix);
 
+    bool FindChessboardCornersSB(Mat image, Size patternSize, Mat corners, int flags);
     bool FindChessboardCorners(Mat image, Size patternSize, Mat corners, int flags);
     void DrawChessboardCorners(Mat image, Size patternSize, Mat corners, bool patternWasFound);
     double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs, int flags, TermCriteria criteria);
