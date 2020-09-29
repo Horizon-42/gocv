@@ -57,28 +57,14 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
                        int flags, TermCriteria criteria)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
+    //    无用
     std::vector<cv::Mat> rotateVecs, transVecs;
-    std::vector<std::vector<cv::Point3f>> objectPointsVec;
-    std::vector<std::vector<cv::Point2f>> imagePointsVec;
-    std::vector<cv::Point3f> objPts;
-    for (int i = 0; i < objectPoints->rows; i++)
-    {
-        auto row = objectPoints->ptr<float>(i);
-        objPts.emplace_back(cv::Point3f(row[0], row[1], row[2]));
-    }
-
+    std::vector<cv::Mat> objectPointsVec;
+    std::vector<cv::Mat> imagePointsVec;
     for (int i = 0; i < imagePoints.length; i++)
     {
-        objectPointsVec.push_back(objPts);
-        std::vector<cv::Point2f> imgPts;
-        std::cout << *(imagePoints.mats[i]) << std::endl;
-        for (int j = 0; j < imagePoints.mats[i]->rows; j++)
-        {
-            auto row = imagePoints.mats[i]->ptr<float>(i);
-            imgPts.emplace_back(cv::Point2f(row[0], row[1]));
-        }
-
-        imagePointsVec.push_back(imgPts);
+        objectPointsVec.push_back(*objectPoints);
+        imagePointsVec.push_back(*(imagePoints.mats[i]));
     }
     std::cout << "calibrate..." << std::endl;
     std::cout << imsz << std::endl;
@@ -98,4 +84,16 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
     //    tvecs->length = int(transVecs.size());
 
     return ret;
+}
+
+double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
+                       Size imageSize, Mat R, Mat T, Mat E, Mat F, int flags, TermCriteria criteria)
+{
+    cv::Size imsz(imageSize.width, imageSize.height);
+    return cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
+                               *cameraMatrix1, *distCoeffs1,
+                               *cameraMatrix2, *distCoeffs2,
+                               imsz, *R, *T, *E, *F,
+                               flags,
+                               *criteria);
 }
