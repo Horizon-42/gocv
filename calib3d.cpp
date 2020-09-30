@@ -87,7 +87,7 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
 }
 
 double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
-                       Size imageSize, Mat R, Mat T, Mat E, Mat F, Mat canvas)
+                       Size imageSize, Mat R, Mat T, Mat E, Mat F, Mat img1, Mat img2, Mat canvas)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
     double rms = cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
@@ -165,26 +165,24 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
         h = cvRound(imageSize.height * sf);
         (*canvas).create(h * 2, w, CV_8UC3);
     }
-
+    cv::Mat imgs[2]{*img1, *img2};
     for (int k = 0; k < 2; k++)
     {
-        Mat img = cv::imread(goodImageList[i * 2 + k], 0), rimg, cimg;
-        remap(img, rimg, rmap[k][0], rmap[k][1], INTER_LINEAR);
-        cvtColor(rimg, cimg, COLOR_GRAY2BGR);
-        Mat canvasPart = !isVerticalStereo ? canvas(Rect(w * k, 0, w, h)) : canvas(Rect(0, h * k, w, h));
-        resize(cimg, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);
-        if (useCalibrated)
-        {
-            Rect vroi(cvRound(validRoi[k].x * sf), cvRound(validRoi[k].y * sf),
+        cv::Mat rimg, cimg;
+        remap(imgs[k], rimg, rmap[k][0], rmap[k][1], cv::INTER_LINEAR);
+        cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
+        cv::Mat canvasPart = !isVerticalStereo ? (*canvas)(cv::Rect(w * k, 0, w, h)) : (*canvas)(cv::Rect(0, h * k, w, h));
+        resize(cimg, canvasPart, canvasPart.size(), 0, 0, cv::INTER_AREA);
+
+        cv::Rect vroi(cvRound(validRoi[k].x * sf), cvRound(validRoi[k].y * sf),
                       cvRound(validRoi[k].width * sf), cvRound(validRoi[k].height * sf));
-            rectangle(canvasPart, vroi, Scalar(0, 0, 255), 3, 8);
-        }
+        cv::rectangle(canvasPart, vroi, cv::Scalar(0, 0, 255), 3, 8);
     }
 
     if (!isVerticalStereo)
-        for (j = 0; j < canvas.rows; j += 16)
-            line(canvas, Point(0, j), Point(canvas.cols, j), Scalar(0, 255, 0), 1, 8);
+        for (int j = 0; j < canvas->rows; j += 16)
+            line(*canvas, cv::Point(0, j), cv::Point(canvas->cols, j), cv::Scalar(0, 255, 0), 1, 8);
     else
-        for (j = 0; j < canvas.cols; j += 16)
-            line(canvas, Point(j, 0), Point(j, canvas.rows), Scalar(0, 255, 0), 1, 8);
+        for (int j = 0; j < canvas->cols; j += 16)
+            line(*canvas, cv::Point(j, 0), cv::Point(j, canvas->rows), cv::Scalar(0, 255, 0), 1, 8);
 }
