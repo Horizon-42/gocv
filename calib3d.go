@@ -98,6 +98,7 @@ func GetOptimalNewCameraMatrixWithParams(cameraMatrix Mat, distCoeffs Mat, image
 	return newMat(C.GetOptimalNewCameraMatrixWithParams(cameraMatrix.Ptr(), distCoeffs.Ptr(), sz, C.double(alpha), newSize, &rt, C.bool(centerPrincipalPoint))), toRect(rt)
 }
 
+// Undistort
 func Undistort(src Mat, dst *Mat, cameraMatrix Mat, distCoeffs Mat, newCameraMatrix Mat) {
 	C.Undistort(src.Ptr(), dst.Ptr(), cameraMatrix.Ptr(), distCoeffs.Ptr(), newCameraMatrix.Ptr())
 }
@@ -181,13 +182,14 @@ func CalibrateCamera(objectPoints Mat, imagePoints []Mat, imageSize image.Point,
 	return float64(res)
 }
 
+// 双目标定并返回remap结果
 func StereoCalibrate(objectCorners, imagePoints1, imagePoints2, cameraMatrix1,
 	distCoeffs1, cameraMatrix2, distCoeffs2 Mat, imageSize image.Point,
-	R, T, E, F *Mat) float64 {
+	R, T, E, F, remap *Mat) float64 {
 	sz := C.struct_Size{
 		width:  C.int(imageSize.X),
 		height: C.int(imageSize.Y),
 	}
 	return float64(C.StereoCalibrate(objectCorners.p, imagePoints1.p, imagePoints2.p, cameraMatrix1.p,
-		distCoeffs1.p, cameraMatrix2.p, distCoeffs2.p, sz, R.Ptr(), T.Ptr(), E.Ptr(), F.Ptr()))
+		distCoeffs1.p, cameraMatrix2.p, distCoeffs2.p, sz, R.Ptr(), T.Ptr(), E.Ptr(), F.Ptr(), remap.Ptr()))
 }

@@ -87,18 +87,104 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
 }
 
 double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
-                       Size imageSize, Mat R, Mat T, Mat E, Mat F)
+                       Size imageSize, Mat R, Mat T, Mat E, Mat F, Mat canvas)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
-    return cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
-                               *cameraMatrix1, *distCoeffs1,
-                               *cameraMatrix2, *distCoeffs2,
-                               imsz, *R, *T, *E, *F,
-                               cv::CALIB_FIX_ASPECT_RATIO +
-                                   //    cv::CALIB_ZERO_TANGENT_DIST +
-                                   cv::CALIB_USE_INTRINSIC_GUESS +
-                                   cv::CALIB_SAME_FOCAL_LENGTH +
-                                   //    cv::CALIB_RATIONAL_MODEL +
-                                   cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
-                               cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
+    double rms = cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
+                                     *cameraMatrix1, *distCoeffs1,
+                                     *cameraMatrix2, *distCoeffs2,
+                                     imsz, *R, *T, *E, *F,
+                                     cv::CALIB_FIX_ASPECT_RATIO +
+                                         //    cv::CALIB_ZERO_TANGENT_DIST +
+                                         cv::CALIB_USE_INTRINSIC_GUESS +
+                                         cv::CALIB_SAME_FOCAL_LENGTH +
+                                         //    cv::CALIB_RATIONAL_MODEL +
+                                         cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
+                                     cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
+
+    std::cout << "done with RMS error=" << rms << std::endl;
+
+    double err = 0;
+    int npoints = imagePoints1->size[0] * 2;
+    cv::Mat imgpt[2]{*imagePoints1, *imagePoints2};
+    cv::Mat cameraMatrix[2]{*cameraMatrix1, *cameraMatrix2};
+    cv::Mat distCoeffs[2]{*distCoeffs1, *distCoeffs2};
+    std::vector<cv::Vec3f> lines[2];
+    for (int k = 0; k < 2; k++)
+    {
+        undistortPoints(imgpt[k], imgpt[k], cameraMatrix[k], distCoeffs[k], cv::Mat(), cameraMatrix[k]);
+        computeCorrespondEpilines(imgpt[k], k + 1, *F, lines[k]);
+    }
+    for (int j = 0; j < imagePoints1->size[0]; j++)
+    {
+        double errij = fabs(imgpt[0].at<cv::Vec2f>(j, 0)[0] * lines[1][j][0] +
+                            imgpt[0].at<cv::Vec2f>(j, 0)[1] * lines[1][j][1] + lines[1][j][2]) +
+                       fabs(imgpt[1].at<cv::Vec2f>(j, 0)[0] * lines[0][j][0] +
+                            imgpt[1].at<cv::Vec2f>(j, 0)[1] * lines[0][j][1] + lines[0][j][2]);
+        err += errij;
+    }
+    std::cout << "average epipolar err = " << err / npoints << std::endl;
+
+    cv::Mat R1, R2, P1, P2, Q;
+    cv::Rect validRoi[2];
+
+    stereoRectify(cameraMatrix[0], distCoeffs[0],
+                  cameraMatrix[1], distCoeffs[1],
+                  imsz, *R, *T, R1, R2, P1, P2, Q,
+                  cv::CALIB_ZERO_DISPARITY, 1, imsz, &validRoi[0], &validRoi[1]);
+    // OpenCV can handle left-right
+    // or up-down camera arrangements
+    bool isVerticalStereo = fabs(P2.at<double>(1, 3)) > fabs(P2.at<double>(0, 3));
+
+    cv::Mat H1, H2;
+    stereoRectifyUncalibrated(imgpt[0], imgpt[1], *F, imsz, H1, H2, 3);
+
+    R1 = cameraMatrix[0].inv() * H1 * cameraMatrix[0];
+    R2 = cameraMatrix[1].inv() * H2 * cameraMatrix[1];
+    P1 = cameraMatrix[0];
+    P2 = cameraMatrix[1];
+
+    //Precompute maps for cv::remap()
+    cv::Mat rmap[2][2];
+    initUndistortRectifyMap(cameraMatrix[0], distCoeffs[0], R1, P1, imsz, CV_16SC2, rmap[0][0], rmap[0][1]);
+    initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imsz, CV_16SC2, rmap[0][0], rmap[1][1]);
+
+    double sf;
+    int w, h;
+    if (!isVerticalStereo)
+    {
+        sf = 600. / MAX(imageSize.width, imageSize.height);
+        w = cvRound(imageSize.width * sf);
+        h = cvRound(imageSize.height * sf);
+        (*canvas).create(h, w * 2, CV_8UC3);
+    }
+    else
+    {
+        sf = 300. / MAX(imageSize.width, imageSize.height);
+        w = cvRound(imageSize.width * sf);
+        h = cvRound(imageSize.height * sf);
+        (*canvas).create(h * 2, w, CV_8UC3);
+    }
+
+    for (int k = 0; k < 2; k++)
+    {
+        Mat img = cv::imread(goodImageList[i * 2 + k], 0), rimg, cimg;
+        remap(img, rimg, rmap[k][0], rmap[k][1], INTER_LINEAR);
+        cvtColor(rimg, cimg, COLOR_GRAY2BGR);
+        Mat canvasPart = !isVerticalStereo ? canvas(Rect(w * k, 0, w, h)) : canvas(Rect(0, h * k, w, h));
+        resize(cimg, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);
+        if (useCalibrated)
+        {
+            Rect vroi(cvRound(validRoi[k].x * sf), cvRound(validRoi[k].y * sf),
+                      cvRound(validRoi[k].width * sf), cvRound(validRoi[k].height * sf));
+            rectangle(canvasPart, vroi, Scalar(0, 0, 255), 3, 8);
+        }
+    }
+
+    if (!isVerticalStereo)
+        for (j = 0; j < canvas.rows; j += 16)
+            line(canvas, Point(0, j), Point(canvas.cols, j), Scalar(0, 255, 0), 1, 8);
+    else
+        for (j = 0; j < canvas.cols; j += 16)
+            line(canvas, Point(j, 0), Point(j, canvas.rows), Scalar(0, 255, 0), 1, 8);
 }

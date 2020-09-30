@@ -24,7 +24,13 @@ extern "C"
     void DrawChessboardCorners(Mat image, Size patternSize, Mat corners, bool patternWasFound);
     double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat cameraMatrix, Mat distCoeffs, int flags, TermCriteria criteria);
     double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
-                           Size imageSize, Mat R, Mat T, Mat E, Mat F);
+                           Size imageSize, Mat R, Mat T, Mat E, Mat F, Mat canvas);
+
+    //    void ComputeCorrespondEpilines(Mat points, int whichImage,
+    //                                   Mat F, Mat lines);
+    //    void UndistortPoints(Mat src, Mat dst,
+    //                         Mat cameraMatrix, Mat distCoeffs,
+    //                         Mat R, Mat P);
 
 #ifdef __cplusplus
 }
