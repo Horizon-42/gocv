@@ -95,10 +95,10 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
                                *cameraMatrix2, *distCoeffs2,
                                imsz, *R, *T, *E, *F,
                                cv::CALIB_FIX_ASPECT_RATIO +
-                                   cv::CALIB_ZERO_TANGENT_DIST +
+                                   //    cv::CALIB_ZERO_TANGENT_DIST +
                                    cv::CALIB_USE_INTRINSIC_GUESS +
                                    cv::CALIB_SAME_FOCAL_LENGTH +
-                                   cv::CALIB_RATIONAL_MODEL +
+                                   //    cv::CALIB_RATIONAL_MODEL +
                                    cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
                                cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
 }
