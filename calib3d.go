@@ -180,3 +180,14 @@ func CalibrateCamera(objectPoints Mat, imagePoints []Mat, imageSize image.Point,
 	//}
 	return float64(res)
 }
+
+func StereoCalibrate(objectCorners, imagePoints1, imagePoints2, cameraMatrix1,
+	distCoeffs1, cameraMatrix2, distCoeffs2 Mat, imageSize image.Point,
+	R, T, E, F *Mat, flags CalibCBFlag, criteria TermCriteria) float64 {
+	sz := C.struct_Size{
+		width:  C.int(imageSize.X),
+		height: C.int(imageSize.Y),
+	}
+	return float64(C.StereoCalibrate(objectCorners.p, imagePoints1.p, imagePoints2.p, cameraMatrix1.p,
+		distCoeffs1.p, cameraMatrix2.p, distCoeffs2.p, sz, R.Ptr(), T.Ptr(), E.Ptr(), F.Ptr(), C.int(flags), criteria.p))
+}
