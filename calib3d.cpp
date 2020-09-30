@@ -87,13 +87,18 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
 }
 
 double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
-                       Size imageSize, Mat R, Mat T, Mat E, Mat F, int flags, TermCriteria criteria)
+                       Size imageSize, Mat R, Mat T, Mat E, Mat F)
 {
     cv::Size imsz(imageSize.width, imageSize.height);
     return cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
                                *cameraMatrix1, *distCoeffs1,
                                *cameraMatrix2, *distCoeffs2,
                                imsz, *R, *T, *E, *F,
-                               flags,
-                               *criteria);
+                               cv::CALIB_FIX_ASPECT_RATIO +
+                                   cv::CALIB_ZERO_TANGENT_DIST +
+                                   cv::CALIB_USE_INTRINSIC_GUESS +
+                                   cv::CALIB_SAME_FOCAL_LENGTH +
+                                   cv::CALIB_RATIONAL_MODEL +
+                                   cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
+                               cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
 }

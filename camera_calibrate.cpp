@@ -7,7 +7,6 @@ double GetInternalMat(Mats pics, Size patternSize, Mat cameraMatrix,
   {
     return -1;
   }
-
   // 初始化棋盘格角点的世界坐标
   std::vector<cv::Point3f> objectCorners;
   int h = patternSize.height, w = patternSize.width;
