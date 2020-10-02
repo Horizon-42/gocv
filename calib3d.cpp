@@ -185,4 +185,6 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
     else
         for (int j = 0; j < canvas->cols; j += 16)
             line(*canvas, cv::Point(j, 0), cv::Point(j, canvas->rows), cv::Scalar(0, 255, 0), 1, 8);
+
+    return rms;
 }
