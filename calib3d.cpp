@@ -89,16 +89,23 @@ double CalibrateCamera(Mat objectPoints, Mats imagePoints, Size imageSize, Mat c
 double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Mat cameraMatrix1, Mat distCoeffs1, Mat cameraMatrix2, Mat distCoeffs2,
                        Size imageSize, Mat R, Mat T, Mat E, Mat F, Mat img1, Mat img2, Mat canvas)
 {
+    std::cout << "StereoCalibrate" << std::endl;
     cv::Size imsz(imageSize.width, imageSize.height);
-    double rms = cv::stereoCalibrate(*objectCorners, *imagePoints1, *imagePoints2,
+    std::vector<cv::Mat> objectPointsVec;
+    std::vector<cv::Mat> imagePointsVec1, imagePointsVec2;
+    objectPointsVec.emplace_back(*objectCorners);
+    imagePointsVec1.emplace_back(*imagePoints1);
+    imagePointsVec2.emplace_back(*imagePoints2);
+
+    double rms = cv::stereoCalibrate(objectPointsVec, imagePointsVec1, imagePointsVec2,
                                      *cameraMatrix1, *distCoeffs1,
                                      *cameraMatrix2, *distCoeffs2,
                                      imsz, *R, *T, *E, *F,
                                      cv::CALIB_FIX_ASPECT_RATIO +
-                                         //    cv::CALIB_ZERO_TANGENT_DIST +
+                                         cv::CALIB_ZERO_TANGENT_DIST +
                                          cv::CALIB_USE_INTRINSIC_GUESS +
                                          cv::CALIB_SAME_FOCAL_LENGTH +
-                                         //    cv::CALIB_RATIONAL_MODEL +
+                                         cv::CALIB_RATIONAL_MODEL +
                                          cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5,
                                      cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));
 
@@ -132,6 +139,7 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
                   cameraMatrix[1], distCoeffs[1],
                   imsz, *R, *T, R1, R2, P1, P2, Q,
                   cv::CALIB_ZERO_DISPARITY, 1, imsz, &validRoi[0], &validRoi[1]);
+
     // OpenCV can handle left-right
     // or up-down camera arrangements
     bool isVerticalStereo = fabs(P2.at<double>(1, 3)) > fabs(P2.at<double>(0, 3));
@@ -147,7 +155,7 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
     //Precompute maps for cv::remap()
     cv::Mat rmap[2][2];
     initUndistortRectifyMap(cameraMatrix[0], distCoeffs[0], R1, P1, imsz, CV_16SC2, rmap[0][0], rmap[0][1]);
-    initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imsz, CV_16SC2, rmap[0][0], rmap[1][1]);
+    initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imsz, CV_16SC2, rmap[1][0], rmap[1][1]);
 
     double sf;
     int w, h;
@@ -165,12 +173,13 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
         h = cvRound(imageSize.height * sf);
         (*canvas).create(h * 2, w, CV_8UC3);
     }
+
     cv::Mat imgs[2]{*img1, *img2};
     for (int k = 0; k < 2; k++)
     {
-        cv::Mat rimg, cimg;
-        remap(imgs[k], rimg, rmap[k][0], rmap[k][1], cv::INTER_LINEAR);
-        cvtColor(rimg, cimg, cv::COLOR_GRAY2BGR);
+        cv::Mat cimg;
+        remap(imgs[k], cimg, rmap[k][0], rmap[k][1], cv::INTER_LINEAR);
+
         cv::Mat canvasPart = !isVerticalStereo ? (*canvas)(cv::Rect(w * k, 0, w, h)) : (*canvas)(cv::Rect(0, h * k, w, h));
         resize(cimg, canvasPart, canvasPart.size(), 0, 0, cv::INTER_AREA);
 
@@ -180,8 +189,10 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
     }
 
     if (!isVerticalStereo)
+    {
         for (int j = 0; j < canvas->rows; j += 16)
             line(*canvas, cv::Point(0, j), cv::Point(canvas->cols, j), cv::Scalar(0, 255, 0), 1, 8);
+    }
     else
         for (int j = 0; j < canvas->cols; j += 16)
             line(*canvas, cv::Point(j, 0), cv::Point(j, canvas->rows), cv::Scalar(0, 255, 0), 1, 8);
