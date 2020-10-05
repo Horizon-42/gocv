@@ -138,7 +138,7 @@ double StereoCalibrate(Mat objectCorners, Mat imagePoints1, Mat imagePoints2, Ma
     stereoRectify(cameraMatrix[0], distCoeffs[0],
                   cameraMatrix[1], distCoeffs[1],
                   imsz, *R, *T, R1, R2, P1, P2, Q,
-                  cv::CALIB_ZERO_DISPARITY, 1, imsz, &validRoi[0], &validRoi[1]);
+                  cv::CALIB_ZERO_DISPARITY, 0, imsz, &validRoi[0], &validRoi[1]);
 
     // OpenCV can handle left-right
     // or up-down camera arrangements
